@@ -1,0 +1,47 @@
+name: minecraft-demo
+services:
+  paper:
+    image: itzg/minecraft-server:${JAVA_TAG:-java21}
+    restart: unless-stopped
+    environment:
+      EULA: "${MC_EULA:-FALSE}"
+      TYPE: PAPER
+      VERSION: "${MC_VERSION:-1.21.1}"
+      MEMORY: "${MC_MEMORY:-2G}"
+      ONLINE_MODE: "TRUE"
+      ENABLE_WHITELIST: "TRUE"
+      WHITELIST: "${MC_WHITELIST:?Ustaw nicki do whitelisty w .env}"
+      ENABLE_RCON: "FALSE"
+      ENABLE_STATUS: "TRUE"
+    ports:
+      - "${MC_BIND_ADDRESS:-127.0.0.1}:25565:25565"
+    volumes:
+      - paper-data:/data
+    networks:
+      - minecraft
+  forge:
+    image: itzg/minecraft-server:${JAVA_TAG:-java21}
+    restart: unless-stopped
+    profiles: ["forge"]
+    environment:
+      EULA: "${MC_EULA:-FALSE}"
+      TYPE: FORGE
+      VERSION: "${MC_VERSION:-1.21.1}"
+      MEMORY: "${MC_MEMORY:-2G}"
+      ONLINE_MODE: "TRUE"
+      ENABLE_WHITELIST: "TRUE"
+      WHITELIST: "${MC_WHITELIST:?Ustaw nicki do whitelisty w .env}"
+      ENABLE_RCON: "FALSE"
+      ENABLE_STATUS: "TRUE"
+    ports:
+      - "${MC_BIND_ADDRESS:-127.0.0.1}:25566:25565"
+    volumes:
+      - forge-data:/data
+    networks:
+      - minecraft
+networks:
+  minecraft:
+    name: minecraft-community
+volumes:
+  paper-data:
+  forge-data:

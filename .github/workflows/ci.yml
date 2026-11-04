@@ -1,0 +1,20 @@
+name: Checks
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      DJANGO_SECRET_KEY: ci-only-key-not-for-deployment-1234567890
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python manage.py makemigrations --check --dry-run
+      - run: python manage.py collectstatic --noinput
+      - run: python manage.py test
+      - run: cp .env.example .env
+      - run: docker compose config --quiet
+      - run: docker compose --env-file examples/minecraft/.env.example -f examples/minecraft/compose.yaml config --quiet
+      - run: docker build -t minecraft-community-cms:test .

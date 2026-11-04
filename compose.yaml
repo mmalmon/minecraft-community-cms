@@ -1,0 +1,43 @@
+name: minecraft-community-cms
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    init: true
+    env_file: .env
+    environment:
+      DATA_DIR: /data
+    ports:
+      - "127.0.0.1:${CMS_PORT:-8090}:8000"
+    volumes:
+      - cms-data:/data
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/',timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+  status-worker:
+    build: .
+    restart: unless-stopped
+    init: true
+    entrypoint: ["python", "manage.py"]
+    command: ["refresh_status", "--loop"]
+    env_file: .env
+    environment:
+      DATA_DIR: /data
+    volumes:
+      - cms-data:/data
+    depends_on:
+      web:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+volumes:
+  cms-data:

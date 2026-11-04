@@ -1,0 +1,14 @@
+# Uruchom z katalogu glownego: docker compose -f compose.yaml -f examples/cms-with-minecraft.yaml up -d --build
+services:
+  web:
+    networks:
+      - default
+      - minecraft
+  status-worker:
+    networks:
+      - default
+      - minecraft
+networks:
+  minecraft:
+    external: true
+    name: minecraft-community

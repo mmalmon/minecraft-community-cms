@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+.venv/
+.test-deps/
+data/
+staticfiles/
+__pycache__/
+*.pyc
+*.sqlite3
+*.log
+backups/
+cms-preview.png
+cms-mobile-preview.png

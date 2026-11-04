@@ -18,3 +18,16 @@ jobs:
       - run: docker compose config --quiet
       - run: docker compose --env-file examples/minecraft/.env.example -f examples/minecraft/compose.yaml config --quiet
       - run: docker build -t minecraft-community-cms:test .
+      - name: Configure isolated runtime check
+        run: python -c "from pathlib import Path; p=Path('.env'); p.write_text(p.read_text().replace('replace-with-your-own-random-secret-minimum-32-characters', 'ci-runtime-only-secret-not-for-production-1234567890'))"
+      - run: docker compose up -d --build --wait --wait-timeout 120
+      - run: docker compose exec -T web python manage.py seed_demo
+      - name: Check public pages and status endpoint
+        run: |
+          curl --fail --silent http://127.0.0.1:8090/ | grep 'Blockhaven'
+          curl --fail --silent http://127.0.0.1:8090/status/ | grep 'survival'
+          curl --fail --silent http://127.0.0.1:8090/health/
+      - if: failure()
+        run: docker compose logs --tail=100
+      - if: always()
+        run: docker compose down -v

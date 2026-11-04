@@ -12,3 +12,5 @@ __pycache__/
 backups/
 cms-preview.png
 cms-mobile-preview.png
+.deployment/
+.deploy-*

@@ -9,3 +9,5 @@ __pycache__
 .test*
 .venv
 cms-*preview.png
+.deployment
+.deploy-*

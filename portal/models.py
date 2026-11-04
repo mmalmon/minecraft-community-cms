@@ -72,3 +72,7 @@ class Entry(models.Model):
         verbose_name_plural = "aktualności, poradniki i strony"
     def __str__(self):
         return self.title
+
+class LegacyRoute(models.Model):
+    path = models.CharField(max_length=300, unique=True)
+    entry = models.ForeignKey(Entry, on_delete=models.CASCADE)

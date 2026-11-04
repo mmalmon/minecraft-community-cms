@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.urls import path
+from django.views.generic import RedirectView
 from portal import views
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -10,4 +11,6 @@ urlpatterns = [
     path("wpis/<slug:slug>/", views.entry_detail, name="entry"),
     path("status/", views.status_json, name="status"),
     path("health/", views.health, name="health"),
+    path("blog/", RedirectView.as_view(pattern_name="news", permanent=True)),
+    path("<path:legacy_path>", views.legacy_redirect),
 ]

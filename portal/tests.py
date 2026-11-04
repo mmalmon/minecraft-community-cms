@@ -77,6 +77,68 @@ class PortalTests(TestCase):
     def test_health(self):
         self.assertEqual(self.client.get("/health/").content, b"ok\n")
 
+
+class OloCraftImportTests(TestCase):
+    def metadata(self):
+        from types import SimpleNamespace
+        return SimpleNamespace(read_text=lambda **_: json.dumps({
+            "status_host": "192.0.2.10",
+            "servers": [{"slug": "mc1", "name": "MC1", "edition": "Paper", "host": "mc.example.org", "port": 25565, "description": "Własny świat"}],
+            "dragonlife_html": '{% block content %}<h1>DragonLife</h1><p>10 serc, zakres 1–30.</p><code>/dragonlife sethearts &lt;gracz&gt;</code>{% endblock %}'
+        }))
+
+    def test_import_keeps_accounts_is_repeatable_and_maps_editor_permissions(self):
+        from django.contrib.auth import get_user_model
+        from django.contrib.auth.models import Group, Permission
+        from django.contrib.contenttypes.models import ContentType
+        from .management.commands.import_olocraft import Command
+        user = get_user_model().objects.create_user("existing-editor", password="ExistingPassword123!", is_staff=True)
+        original_hash = user.password
+        legacy_type = ContentType.objects.create(app_label="content", model="post")
+        permission = Permission.objects.create(content_type=legacy_type, codename="change_post", name="Change post")
+        group = Group.objects.create(name="Redakcja OloCraft")
+        group.permissions.add(permission)
+        user.groups.add(group)
+        command = Command()
+        command.handle(metadata=self.metadata())
+        command.handle(metadata=self.metadata())
+        self.assertEqual(Server.objects.count(), 1)
+        self.assertEqual(Entry.objects.filter(slug="dragonlife").count(), 1)
+        user.refresh_from_db()
+        self.assertEqual(user.password, original_hash)
+        self.assertTrue(user.has_perm("portal.change_entry"))
+        self.assertFalse(user.has_perm("auth.change_user"))
+        self.assertFalse(user.has_perm("portal.delete_entry"))
+        self.assertFalse(user.has_perm("portal.change_server"))
+        command.handle(metadata=self.metadata(), community_editors=True)
+        user = get_user_model().objects.get(pk=user.pk)
+        self.assertTrue(user.has_perm("portal.change_server"))
+        self.assertTrue(user.has_perm("portal.change_sitesettings"))
+        self.assertFalse(user.has_perm("portal.delete_server"))
+        self.assertFalse(user.has_perm("auth.change_user"))
+        page = self.client.get("/wpis/dragonlife/")
+        self.assertContains(page, "/dragonlife sethearts &lt;gracz&gt;")
+        self.assertRedirects(self.client.get("/dragonlife/"), "/wpis/dragonlife/", status_code=301, fetch_redirect_response=False)
+        Entry.objects.filter(slug="dragonlife").update(is_published=False)
+        self.assertEqual(self.client.get("/dragonlife/").status_code, 404)
+
+    def test_original_news_and_tutorial_slugs_can_collide_without_losing_text(self):
+        from django.db import connection
+        from .management.commands.import_olocraft import Command
+        with connection.cursor() as cursor:
+            for table in ("content_post", "content_tutorial"):
+                cursor.execute("CREATE TABLE "+table+" (title text, slug text, intro text, body text, is_published bool, published_at text)")
+                cursor.execute("INSERT INTO "+table+" VALUES (%s,%s,%s,%s,%s,%s)", ["Tytuł", "ten-sam", "Opis", table, True, timezone.now().isoformat()])
+        Command().handle(metadata=self.metadata())
+        self.assertEqual(Entry.objects.count(), 3)
+        self.assertContains(self.client.get("/wpis/ten-sam/"), "content_post")
+        self.assertContains(self.client.get("/wpis/tutorial-ten-sam/"), "content_tutorial")
+        self.assertRedirects(self.client.get("/poradniki/ten-sam/"), "/wpis/tutorial-ten-sam/", status_code=301, fetch_redirect_response=False)
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) FROM content_post")
+            self.assertEqual(cursor.fetchone()[0], 1)
+
+
 class ProtocolTests(SimpleTestCase):
     def reader(self, data):
         buffer=BytesIO(data)

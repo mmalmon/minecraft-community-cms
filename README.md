@@ -19,7 +19,8 @@ CMS nie ma dostępu do Docker API, RCON ani plików światów.
 - osobny proces sprawdzania statusu z zapisanym wynikiem;
 - polski, responsywny interfejs i pustą stronę gotową do własnych treści.
 
-Nie importuje danych ani kont z produkcyjnego OloCraft. Nie obsługuje statusu
+Domyślna instalacja startuje pusta. Opcjonalny [importer starszego OloCraft](docs/olocraft-migration.md)
+przenosi treści i konta z prywatnej kopii istniejącej bazy. Nie obsługuje statusu
 Bedrock, sklepów, płatności, rejestracji graczy ani sterowania serwerami gry.
 
 ## Szybki start: strona CMS
@@ -89,6 +90,7 @@ port i `enable-status=true`. Nie podawaj publicznym użytkownikom hosta statusu.
 - [HTTPS, sieci i ograniczenia](docs/deployment.md)
 - [Kopie i odtwarzanie](docs/backup.md)
 - [Architektura i rozwój projektu](docs/architecture.md)
+- [Migracja istniejącego OloCraft i zachowanie starych linków](docs/olocraft-migration.md)
 - [OloCraft jako inspiracja](https://master-homelab.pl/projekty/olocraft/)
 - [Homelab Cloud Starter](https://github.com/mmalmon/homelab-cloud-starter)
 

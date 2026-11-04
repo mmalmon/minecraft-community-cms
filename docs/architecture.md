@@ -17,8 +17,9 @@ CMS nie uruchamia poleceń serwera gry. Podział:
 - Django admin: opisy, adresy, wymagania, publikacje i wygląd tekstowy;
 - proces statusu: odczyt protokołu Java, bez konsoli, RCON i Docker socketu.
 
-W tej wersji nie ma importera OloCraft, rejestracji graczy, wizualnego
-edytora motywu ani mechanizmu dodatków. Osobne typy wpisów i pola można
+Opcjonalny [importer OloCraft](olocraft-migration.md) przenosi dane starszej
+aplikacji na kopii bazy i zachowuje stare adresy. Projekt nie zawiera
+rejestracji graczy, wizualnego edytora motywu ani mechanizmu dodatków. Osobne typy wpisów i pola można
 rozwijać po sprawdzeniu potrzeb użytkowników.
 
 ## Testy lokalne
